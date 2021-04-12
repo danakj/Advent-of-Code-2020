@@ -1,5 +1,5 @@
 # Advent-of-Code-2020
-Learning to write rust by doing the Advent of Code 2020
+Learning to write [Rust](https://www.rust-lang.org/learn) by doing the Advent of Code 2020.
 
 https://adventofcode.com/2020
 
