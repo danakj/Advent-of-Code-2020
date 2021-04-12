@@ -2,6 +2,29 @@
 name = "AdventOfCode"
 version = "1.0.0"
 
+[profile.dev]
+opt-level = 3
+
+[dependencies]
+regex = "1"
+lazy_static = "1"
+
 [[bin]]
 name = "day1"
-path = "day1.rs"
+path = "day1/day1.rs"
+
+[[bin]]
+name = "day2"
+path = "day2/day2.rs"
+
+[[bin]]
+name = "day3"
+path = "day3/day3.rs"
+
+[[bin]]
+name = "day4"
+path = "day4/day4.rs"
+
+[[bin]]
+name = "day5"
+path = "day5/day5.rs"
