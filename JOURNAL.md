@@ -2,7 +2,7 @@
 
 I'm learning by doing [Advent of Code 2020](https://adventofcode.com/2020). Since the exercises there are attached to "days" and I am also journaling over a period of "days" this will inevitably be confusing, sorry. We'll just use "day N" to refer to exercises except in my headers which will refer to my own personal timeline. Super clear, right?
 
-## Day 1
+## Day 1 of Learning
 
 Completed [excercises for day 1-7](https://adventofcode.com/2020). At first I had to google absolutely everything. By day 5 I wrote the entire program including file-reading from scratch without any copy/paste.
 
