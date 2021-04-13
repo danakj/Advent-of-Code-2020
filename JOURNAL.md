@@ -1,6 +1,6 @@
-# Journal
+# Learning Rust Journal
 
-# Day 1
+## Day 1
 
 Completed excercises for day 1-7. At first I had to google absolutely everything. By day 5 I wrote the entire program including file-reading from scratch without any copy/paste.
 
