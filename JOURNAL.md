@@ -2,7 +2,7 @@
 
 ## Day 1
 
-Completed excercises for day 1-7. At first I had to google absolutely everything. By day 5 I wrote the entire program including file-reading from scratch without any copy/paste.
+Completed [excercises for day 1-7](https://adventofcode.com/2020). At first I had to google absolutely everything. By day 5 I wrote the entire program including file-reading from scratch without any copy/paste.
 
 Day 4 I tried to experiment with [monads in rust](https://hoverbear.org/blog/option-monads-in-rust/). When validating 7 pieces of data, instead of writing return statements on every other line, I combined optional states with `.and_then()` to perform the next step if each previous step had succeeded. The "success" result was done by Option's `.and()` operator to makes sure all the monads resulted in a value.
 
