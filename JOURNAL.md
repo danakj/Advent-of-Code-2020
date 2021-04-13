@@ -26,7 +26,7 @@ This led to some real confusion when what I wanted was a reference. I realized t
 ```rust
 let con = ...
 for c in &con {
-  for(c);
+  foo(c);
 }
 ```
 
