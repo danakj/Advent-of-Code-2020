@@ -72,7 +72,7 @@ In rust, since types do no just convert implicitly, I immediately had a bit of a
 pc += jumparg as usize;
 ```
 
-Except jumparg can be negative, so casting isn't enough here. Ok so I went to the internet to see what other people do, and it seems to be a bit of a sharp edge in the language. I couldn't find any good concensus. So I tried writing a generic function to add a signed value to an unsigned value, easy right? Not really, generics are not like C++ templates it turns out. You can't just put a "will be some type" and write code for any given type (or at least I didn't figure out how). Instead, you have to write to a trait, ok so I found traits for [signed](https://docs.rs/num/0.4.0/num/trait.Signed.html) and [unsigned](https://docs.rs/num/0.4.0/num/trait.Unsigned.html) numbers in [the num module](https://docs.rs/num/0.4.0/num/index.html).
+Except `jumparg` can be negative, so casting isn't enough here. Ok so I went to the internet to see what other people do, and it seems to be a bit of a sharp edge in the language. I couldn't find any good concensus. So I tried writing a generic function to add a signed value to an unsigned value, easy right? Not really, generics are not like C++ templates it turns out. You can't just put a "will be some type" and write code for any given type (or at least I didn't figure out how). Instead, you have to write to a trait, ok so I found traits for [signed](https://docs.rs/num/0.4.0/num/trait.Signed.html) and [unsigned](https://docs.rs/num/0.4.0/num/trait.Unsigned.html) numbers in [the num module](https://docs.rs/num/0.4.0/num/index.html).
 
 ```rust
 fn add_signed<U, I>(u: U, i: I) -> U
@@ -102,7 +102,7 @@ which works, with well-defined behaviour, but it's truncating the `pc` from a po
 pc = (pc as i64 + jumparg as i64) as usize
 ```
 
-This also works, but is still truncating our 64bit `pc` value to 63bits + sign bit. For this toy program it surely doesn't matter, but it made me unhappy. This didn't feel like the right way. How could I do this by only changing the smaller jumparg and applying the value to the `usize`?
+This also works, but is still truncating our 64bit `pc` value to 63bits + sign bit. For this toy program it surely doesn't matter, but it made me unhappy. This didn't feel like the right way. How could I do this by only changing the smaller `jumparg` and applying the value to the `usize`?
 
 The first helper I discovered was that `i32` has a method `unsigned_abs()` which will convert my `i32` to `u32`. Perfect so we can add a `usize` and a `u32` surely? Almost, we just need to cast the `u32` to `usize`. This shouldn't be lossy, so now we're happy. But we need to deal with the positive and negative values. At this point it was worth making a helper function, which let me add `pc` and `jumparg`.
 
