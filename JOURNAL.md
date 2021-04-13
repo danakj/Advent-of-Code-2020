@@ -37,3 +37,175 @@ The next thing that caught me with the borrow checker was stashing references in
 So realizing that I wanted `captures.get(1).unwrap().as_str()` to get a `&str` with a lifetime of the original string made me a happy camper.
 
 Lastly, I discovered that I have a hard time with not writing the trailing `;` for some reason when writing rust. This is weird since I've been writing C++ all day for the last few decades but 🤷.
+
+## Day 2 of Learning
+
+Completed the day 8 exercise, and learned a few interesting or
+difficult things. The exercise itself was a bit tricky to solve
+until I realized I just needed to brute force it and try flipping
+each operation once. But I also ran into some rust pitfalls.
+
+1) Adding signed and unsigned values.
+
+I wanted to track my program counter, which is an index in an array,
+so that makes sense to be a `usize`. But my program's instruction
+arguments can jump forward or backward, so they need to be a signed
+value, which I made `i32`. So then.. adding the argument to the
+program counter should be easy, right?
+
+In normal C++, at least with the warning set I am used to at work,
+you would just write (with `pc` being `usize` program counter and
+`jumparg` being the `i32` argument)
+
+```cpp
+int32_t jumparg = -2;
+size_t pc = 5;
+
+pc += jumparg;
+```
+
+This [just works](https://godbolt.org/z/77nYKbsKo), though I know this hides potential issues here and I would have to go read a standard to be sure `pc` won't get truncated and turned into an `int32_t` during the operation, losing state along the way.
+
+In rust, since types do no just convert implicitly, I immediately had a bit of a headache. Doing `pc += jumparg` was an error because I cannot add different types. I thought ok sure I will just cast, as I have been until now
+
+```rust
+pc += jumparg as usize;
+```
+
+Except jumparg can be negative, so casting isn't enough here. Ok so I went to the internet to see what other people do, and it seems to be a bit of a sharp edge in the language. I couldn't find any good concensus. So I tried writing a generic function to add a signed value to an unsigned value, easy right? Not really, generics are not like C++ templates it turns out. You can't just put a "will be some type" and write code for any given type (or at least I didn't figure out how). Instead, you have to write to a trait, ok so I found traits for [signed](https://docs.rs/num/0.4.0/num/trait.Signed.html) and [unsigned](https://docs.rs/num/0.4.0/num/trait.Unsigned.html) numbers in [the num module](https://docs.rs/num/0.4.0/num/index.html).
+
+```rust
+fn add_signed<U, I>(u: U, i: I) -> U
+  where
+    U: num::Unsigned,
+    I: num::Signed,
+{
+  if !i.is_negative() {
+    u + i as ...
+  } else {
+    u - i.abs() as ...
+  }
+}
+```
+
+But now I still need to do something with the signed value to make it into the correct unsigned value. And it would be nice to promote it to a larger size if `u` is larger before doing `abs()`. But then, what if `u` is smaller? I didn't figure out what to do here, maybe because there is indeed no good answer, or no easy-and-correct answer.
+
+So I feel back to something simpler, trying to do this with a few casts
+
+```rust
+pc = (pc as i32 + jumparg) as usize
+```
+
+which works, with well-defined behaviour, but it's truncating the `pc` from a potential 64 bytes down to 32. So what if we work in i64?
+
+```rust
+pc = (pc as i64 + jumparg as i64) as usize
+```
+
+This also works, but is still truncating our 64bit `pc` value to 63bits + sign bit. For this toy program it surely doesn't matter, but it made me unhappy. This didn't feel like the right way. How could I do this by only changing the smaller jumparg and applying the value to the `usize`?
+
+The first helper I discovered was that `i32` has a method `unsigned_abs()` which will convert my `i32` to `u32`. Perfect so we can add a `usize` and a `u32` surely? Almost, we just need to cast the `u32` to `usize`. This shouldn't be lossy, so now we're happy. But we need to deal with the positive and negative values. At this point it was worth making a helper function, which let me add `pc` and `jumparg`.
+
+```rust
+// Add a signed i64 to an unsigned usize.
+fn add_signed(u: usize, i: i32) -> usize {
+  if i >= 0 {
+    u + i.unsigned_abs() as usize
+  } else {
+    u - i.unsigned_abs() as usize
+  }
+}
+
+// Then we can add pc and jumparg finally!
+pc = add_signed(pc, jumparg);
+```
+
+Hooray! But not so fast. This problem had the argument be used in 2 different contexts. One, to move the `pc` as we discussed above. But it can also be used to modify an `accumulator`. Since a negative value in the accumulator makes sense (unlike for the program counter), I had made the accumulator be `i64`. See the problem? Yet more integer type conversions!
+
+```rust
+Operation::Acc => {
+  accumulator += arg as i64;
+  pc += 1;
+}
+Operation::Jmp => {
+  pc = add_signed(pc, arg);
+}
+```
+
+In the first line I'm adding an `i32` to an `i64` to I have to cast it again. I had over-optimized by using an `i32` at which point I felt like I had landed on what seemed like a good rule:
+
+_Make all integer types 64bit unless you have a very good reason not to._
+
+I changed the argument to `i64`, and I cast it to `usize` inside `add_signed()` after getting the absolute value. This gives a pretty decent defined behaviour for my program. If this was going to production I'd probably want to check that the conversion there didn't lose any state. Apparently [the TryFrom trait](https://doc.rust-lang.org/std/convert/trait.TryFrom.html) ... implements methods for primitive types? I am not sure how to even word or explain that yet. `u64` does not have/implement the `TryFrom` trait, but it seems `TryFrom` provides an implementation itself as soon as you `use` it.
+
+```rust
+// Add a signed i64 to an unsigned usize.
+fn add_signed(u: usize, i: i64) -> usize {
+  use std::convert::TryFrom;
+  if i >= 0 {
+    u + usize::try_from(i.unsigned_abs()).unwrap()
+  } else {
+    u - usize::try_from(i.unsigned_abs()).unwrap()
+  }
+}
+```
+
+2) Borrow checker problems
+
+I was iterating over a vector of tuples, so I was accessing my `program[pc].0` and `program[pc].1` etc. In C++ I would make a reference to these to give them a nicer name, so I tried to do similarly. But I also wanted to be able to write to `.0` so I needed a mutable reference.
+
+```rust
+loop {
+  let visited = &mut program[pc].0;
+  let op_flipped = &mut program[pc].1;
+  let instruction = &program[pc].2;
+}
+```
+
+Welp, we can't do that! The borrow checker immediately complains because I've to 2 mutable borrows of `program`. Since I did this up at the top of the loop, we use both `visited` and `op_flipped` below, the borrow checker sees that they both need to exist at the same time. My first unhappy moment with the borrow checker.
+
+So I had to actually rethink how I wanted to structure my loop internals. If I could break it into parts that use `.0`, `.1` and `.2` separately, then I could borrow each of them in the section I wanted to use them only. Unfortunately, `op_flipped` and `instruction` were being used together within a single match statement.
+
+My next thought was to scope the references more closely inside the match statement and other blocks. This ended up making me very unhappy. In the code above, it's very clear what each name is for the tuple values. It's easy to see the wrong name is not used as each tuple appears once and in order. With the references all over my loop, it would be too easy to write `.1` when I meant `.0` or something. This was equivalent to using magic numbers instead of constants.
+
+My breakthrough realization here was that tuples were not serving me and that I should provide them names. So I wrote a struct and mapped the string into that. It's more verbose than constructing a tuple, since you have to name all the fields there as well, but now I had names instead of magic numbers.
+
+```rust
+  struct ProgramLine {
+    // Was this line executed yet in the current execution.
+    visited: bool,
+    // Was this instruction's Operation flipped yet in the current
+    // or any previous execution.
+    op_flipped: bool,
+    // Instruction to run.
+    instruction: Instruction,
+  }
+  let mut program: Vec<ProgramLine> = input_all
+    .split_terminator("\n")
+    .map(|line| ProgramLine {
+      visited: false,
+      op_flipped: false,
+      instruction: read_instruction(line),
+    })
+    .collect();
+```
+
+I thought about making `visited` and `op_flipped` default to false and not initializing them explicitly. It seems that isn't very easy however. You can't just assign a default value in the struct definition like you would in C++. You have to implement a Default trait, essentially writing a default constructor, but with more lines of code. I settled for explicit initialization.
+
+Once these had names, instead of taking a reference to each field, I just took a reference to the ProgramLine struct as a whole. This meant I only needed one `&mut` reference, which made the borrow checker as happy as a plum.
+
+```rust
+let pline = &mut program[pc];
+if pline.visited {
+  break;
+}
+...
+```
+
+In conclusion for today...
+
+No implicit narrowing, or even widening, of integers is a bit of a pain. However it did make me think about what types really needed and after a few iterations I think I am very happy with the result, and it has very well-defined behaviour or will crash in a defined way. I could give it any other defined behaviour instead of a crash very easily.
+
+Use 64-bit integers unless you really need something else. Use `usize` for indexing though. `usize::try_from()` can reliably take you to `usize` from `u64`.
+
+Eagerly promote tuples to structs. Don't use references to "give something a name". Just give it a name as a struct instead. Use references to express ownership. As as exception.. I did use `pline` to give `program[pc]` a name inside a loop iteration, but I have a feeling even that would be a bad idea and could bite me, since it forced `program[pc]` into a `&mut` reference, preventing multiple shared references if it were needed for part of the loop body.
