@@ -6,9 +6,9 @@ I'm learning by doing [Advent of Code 2020](https://adventofcode.com/2020). Sinc
 
 Completed [excercises for day 1-7](https://adventofcode.com/2020). At first I had to google absolutely everything. By day 5 I wrote the entire program including file-reading from scratch without any copy/paste.
 
-Day 4 I tried to experiment with [monads in rust](https://hoverbear.org/blog/option-monads-in-rust/). When validating 7 pieces of data, instead of writing return statements on every other line, I combined optional states with `.and_then()` to perform the next step if each previous step had succeeded. The "success" result was done by Option's `.and()` operator to makes sure all the monads resulted in a value.
+For day 4 I tried to experiment with [monads in rust](https://hoverbear.org/blog/option-monads-in-rust/). When validating 7 pieces of data, instead of writing return statements on every other line, I combined optional states with `.and_then()` to perform the next step if each previous step had succeeded. The "success" result was done by Option's `.and()` operator to makes sure all the monads resulted in a value.
 
-Day 7 was by far the most challenging. It required the equivalent of tree walking. I started by building a `struct` for the rules, but in the end it was simpler to just re-run regexes that I constructed dynamically.
+For day 7 was by far the most challenging. It required the equivalent of tree walking. I started by building a `struct` for the rules, but in the end it was simpler to just re-run regexes that I constructed dynamically.
 
 I hit a few things that became obvious once I understood what was going on. First, I ran into some confusion with the borrow checker and for loops.
 
