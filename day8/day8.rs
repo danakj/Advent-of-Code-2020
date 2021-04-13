@@ -107,13 +107,14 @@ fn p2(input_all: &str) {
     // Instruction to run.
     instruction: Instruction,
   }
+  impl ProgramLine {
+      fn new(inst : Instruction) -> Self {
+          ProgramLine{visited: false, op_flipped: false, instruction: inst}
+      }
+  }
   let mut program: Vec<ProgramLine> = input_all
     .split_terminator("\n")
-    .map(|line| ProgramLine {
-      visited: false,
-      op_flipped: false,
-      instruction: read_instruction(line),
-    })
+    .map(|line| ProgramLine::new(read_instruction(line)))
     .collect();
 
   // Exceute the program over and over, trying to flip a single instruction
