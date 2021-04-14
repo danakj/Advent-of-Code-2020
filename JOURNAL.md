@@ -216,4 +216,5 @@ Maybe it's that the problems are getting harder, or that I am getting more famil
 
 Noteworty moments were:
 - I got to use slices, which I was just reading and learning about today. I understand they are like a base::Span in chromium, and super easy to use.
-- I got to use dynamic programming. Ranges with .rev() make it very easy to iterate a loop backwards with indices without going out of range or messing anything up. Yay!
+- I got to use dynamic programming. That was exciting since I don't think I've done that since 3rd year of university!
+- Ranges with .rev() make it very easy to iterate a loop backwards with indices without going out of range or messing anything up. Yay!
