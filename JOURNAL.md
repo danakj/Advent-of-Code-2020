@@ -209,3 +209,11 @@ No implicit narrowing, or even widening, of integers is a bit of a pain. However
 Use 64-bit integers unless you really need something else. Use `usize` for indexing though. `usize::try_from()` can reliably take you to `usize` from `u64`.
 
 Eagerly promote tuples to structs. Don't use references to "give something a name". Just give it a name as a struct instead. Use references to express ownership. As as exception.. I did use `pline` to give `program[pc]` a name inside a loop iteration, but I have a feeling even that would be a bad idea and could bite me, since it forced `program[pc]` into a `&mut` reference, preventing multiple shared references if it were needed for part of the loop body.
+
+## Day 3 of Learning
+
+Maybe it's that the problems are getting harder, or that I am getting more familiar, but I spent very little time thinking about "how do I write this in Rust" today. I spent almost all my energy on how to solve the problems, and the writing of code was secondary. The way it should be.
+
+Noteworty moments were:
+- I got to use slices, which I was just reading and learning about today. I understand they are like a base::Span in chromium, and super easy to use.
+- I got to use dynamic programming. Ranges with .rev() make it very easy to iterate a loop backwards with indices without going out of range or messing anything up. Yay!
