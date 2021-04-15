@@ -212,9 +212,21 @@ Eagerly promote tuples to structs. Don't use references to "give something a nam
 
 ## Day 3 of Learning
 
-Maybe it's that the problems are getting harder, or that I am getting more familiar, but I spent very little time thinking about "how do I write this in Rust" today. I spent almost all my energy on how to solve the problems, and the writing of code was secondary. The way it should be.
+Maybe it's that the problems are getting harder, or that I am getting more familiar, but I spent very little time thinking about "how do I write this in Rust" today. I spent almost all my energy on how to solve the problems, and the writing of code was secondary. The way it should be. I solved day 9 and day 10 problems.
 
 Noteworty moments were:
 - I got to use slices, which I was just reading and learning about today. I understand they are like a base::Span in chromium, and super easy to use.
 - I got to use dynamic programming. That was exciting since I don't think I've done that since 3rd year of university!
 - Ranges with .rev() make it very easy to iterate a loop backwards with indices without going out of range or messing anything up. Yay!
+
+## Day 4 of Learning
+
+Today I used an `impl` for a `struct` when working on the day 11 problem. This gave me a chance to try out Object Oriented programing in rust. Since I only had one type, and I didn't need to build relationships between types, it went well! In my work time I've been trying to understand how to build an object relationship graph and getting the sense you Just Shouldn't, and you should separate "data this type holds" from "interfaces/structs this type uses" and pass the latter as a function argument instead of storing it as object state.
+
+Anyhow, the difficulty of the problems are increasing, which is leading to me writing bugs more often and having to spend time in the edit/build/debug cycle more. It's still very very nice that my code is not doing something undefined (like reading off the end of an array) as those types of problems are much harder to debug.
+
+One thing I miss is `#define` and `#if` to easily block off parts of the code to not run without changing scopes. That would let me more easily switch between different test cases. For the day 11 problem for example I was switching between reading the input file (large) and copy/pasting smaller examples out of the instructions, and I had to go switch comments at 4 or 5 different places each time I tried the other mode.
+
+Since the difficulty of problems is increasing, and I am starting to as a result split my solution up into composable functions, I should also probably start writing unit tests. I think rust seems to make that easy to do but I haven't tried yet. Some simple tests of my edge cases would let me spend a lot less time debugging I suspect.
+
+So overall today I think I learnt things I want/should do/improve rather than mistakes I was making in the language itself. The language mostly stayed out of my way again today, other than the way it forces you to think about your types a bit but in a way that I don't mind because it results in code that runs reasonably at each step of the way.
