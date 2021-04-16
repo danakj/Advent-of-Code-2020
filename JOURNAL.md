@@ -90,7 +90,7 @@ fn add_signed<U, I>(u: U, i: I) -> U
 
 But now I still need to do something with the signed value to make it into the correct unsigned value. And it would be nice to promote it to a larger size if `u` is larger before doing `abs()`. But then, what if `u` is smaller? I didn't figure out what to do here, maybe because there is indeed no good answer, or no easy-and-correct answer.
 
-So I feel back to something simpler, trying to do this with a few casts
+So I fell back to something simpler, trying to do this with a few casts
 
 ```rust
 pc = (pc as i32 + jumparg) as usize
