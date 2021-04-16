@@ -230,3 +230,19 @@ One thing I miss is `#define` and `#if` to easily block off parts of the code to
 Since the difficulty of problems is increasing, and I am starting to as a result split my solution up into composable functions, I should also probably start writing unit tests. I think rust seems to make that easy to do but I haven't tried yet. Some simple tests of my edge cases would let me spend a lot less time debugging I suspect.
 
 So overall today I think I learnt things I want/should do/improve rather than mistakes I was making in the language itself. The language mostly stayed out of my way again today, other than the way it forces you to think about your types a bit but in a way that I don't mind because it results in code that runs reasonably at each step of the way.
+
+## Day 5 of Learning
+
+I solved the problem for day 12. Along the way I used a number of rust concepts again.
+
+Structs. Nothing new here.
+
+Enums. I was going to write a struct for one piece of data with 2 fields, but I realized an enum with an argument for each variant would do the same job and seemed nicer to work with.
+
+Impls. I implemented `std::fmt::Display` for my enums and I actually understood what I was writing this time!
+
+Rebinding. This was new for me, being free to write `let` instead of making something mutable is nice, esp for things like fn arguments.
+
+Unit tests!!! Ok singular. I wrote one enormous test for my most tricky logic function. It meant that when I finally compiled and ran my part 1 solution it worked the first try.
+
+`anyhow::Result`, which is part of the `anyhow` crate, along with the `?` operator. I tried to work with `std::result::Result`, but mixing the Err types with `io::Result` got very confusing for my beginner self. But I learnt about `anyhow` at work today and thought I should try it, and it was great. I made any function that could have surprises return a `Result` instead of doing a panic!, which I am sure [Linus would be happy about too](https://lore.kernel.org/lkml/20210414184604.23473-1-ojeda@kernel.org/T/#ma8f901fffc0badc0f5a9a52046d984c4bb428dec). Those folks probably understand how to get `std::result::Result` to play with other error types though.

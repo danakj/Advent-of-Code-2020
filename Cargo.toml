@@ -8,6 +8,7 @@ opt-level = 3
 [dependencies]
 regex = "1"
 lazy_static = "1"
+anyhow= "1"
 
 [[bin]]
 name = "day1"
@@ -52,3 +53,7 @@ path = "day10/day10.rs"
 [[bin]]
 name = "day11"
 path = "day11/day11.rs"
+
+[[bin]]
+name = "day12"
+path = "day12/day12.rs"

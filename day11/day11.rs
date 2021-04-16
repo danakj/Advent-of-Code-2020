@@ -126,6 +126,7 @@ impl World {
         self.spots.iter().filter(|&&x| x == Spot::Chair(true)).count()
   }
 
+  #[allow(dead_code)]
   fn print(&self) {
     for y in 0..H {
       for x in 0..W {
