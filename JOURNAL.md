@@ -246,3 +246,7 @@ Rebinding. This was new for me, being free to write `let` instead of making some
 Unit tests!!! Ok singular. I wrote one enormous test for my most tricky logic function. It meant that when I finally compiled and ran my part 1 solution it worked the first try.
 
 `anyhow::Result`, which is part of the `anyhow` crate, along with the `?` operator. I tried to work with `std::result::Result`, but mixing the Err types with `io::Result` got very confusing for my beginner self. But I learnt about `anyhow` at work today and thought I should try it, and it was great. I made any function that could have surprises return a `Result` instead of doing a panic!, which I am sure [Linus would be happy about too](https://lore.kernel.org/lkml/20210414184604.23473-1-ojeda@kernel.org/T/#ma8f901fffc0badc0f5a9a52046d984c4bb428dec). Those folks probably understand how to get `std::result::Result` to play with other error types though.
+
+## Day 6+7 of Learning
+
+I worked on the problem for day 13. Part 2 was tricky, and this took me a 2nd day of effort to figure out a solution for. Nothing really new or interesting happened rust-wise as this was really just how to solve a tricky problem. I enjoyed solving it in rust nonetheless, and had no moment where I wished for a different language, or felt like it was getting in my way. The loops and closure constructs, along with compiler warnings/errors all helped me solve it faster than I would have otherwise.
