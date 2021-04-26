@@ -256,3 +256,8 @@ I also solved the puzzle for day 14. I started out by making abstractions to mat
 One small lesson I learnt to prevent annoying sprawling refactoring: If your method takes something by value, and it makes sense, but you have a refernce.. don't go change the method signature to a reference. It will just annoy you later when you have values. Just do the deref in that place.
 
 Tagged unions aka enums continue to be an awesome thing to build logic around, especially with matchers, and `if let Some(val)` syntax to branch when an Option is set is very wonderful.
+
+## Day 8 of Learning
+
+I solved the puzzle for day 15. I simply built out data structures to match the problem description, compiled and ran it, and got the right answer. Then for part 2, I needed to run the same problem on a much longer timeframe. I just increased the number of iterations, and it still completed in about 4 seconds. I blame Rust giving me fast codegen when I follow the defaults. That along with absolutely 0 seconds doing any runtime debugging, *Rust is amazing*.
+
