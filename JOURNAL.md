@@ -250,3 +250,9 @@ Unit tests!!! Ok singular. I wrote one enormous test for my most tricky logic fu
 ## Day 6+7 of Learning
 
 I worked on the problem for day 13. Part 2 was tricky, and this took me a 2nd day of effort to figure out a solution for. Nothing really new or interesting happened rust-wise as this was really just how to solve a tricky problem. I enjoyed solving it in rust nonetheless, and had no moment where I wished for a different language, or felt like it was getting in my way. The loops and closure constructs, along with compiler warnings/errors all helped me solve it faster than I would have otherwise.
+
+I also solved the puzzle for day 14. I started out by making abstractions to match the puzzle, including a "36 bit integer". I did this by wrapping a 64 bit integer in a struct, which worked out fine but in the end I didn't need anything special about being 36 bits, like wrapping or trucating or anything, so that made things harder than they needed to be.
+
+One small lesson I learnt to prevent annoying sprawling refactoring: If your method takes something by value, and it makes sense, but you have a refernce.. don't go change the method signature to a reference. It will just annoy you later when you have values. Just do the deref in that place.
+
+Tagged unions aka enums continue to be an awesome thing to build logic around, especially with matchers, and `if let Some(val)` syntax to branch when an Option is set is very wonderful.
