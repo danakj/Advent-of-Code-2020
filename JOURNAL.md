@@ -288,3 +288,5 @@ On the puzzle for day 16, I learnt that containers that only expose an iterator 
   };
 ```
 And because I didn't use any mutable variable, I can expect this to generate optimal code.
+
+For the puzzle for day 17, I used an object oriented approach. Or is it called data-oriented? I built a model, with methods to query various things about it, and set states. Then I made a method that would generate the next version of the model from the current version, using those methods. This made for some extremely clean code IMO. And the proof of this was when the problem wanted me to add another dimension. I copy-pasted and added the 4th dimension everywhere. I had to hunt down one copy-paste mistake where I still had a `z` but wanted a `w` for the 4th dimension, and it Just Worked!
