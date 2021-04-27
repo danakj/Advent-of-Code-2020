@@ -261,3 +261,30 @@ Tagged unions aka enums continue to be an awesome thing to build logic around, e
 
 I solved the puzzle for day 15. I simply built out data structures to match the problem description, compiled and ran it, and got the right answer. Then for part 2, I needed to run the same problem on a much longer timeframe. I just increased the number of iterations, and it still completed in about 4 seconds. I blame Rust giving me fast codegen when I follow the defaults. That along with absolutely 0 seconds doing any runtime debugging, *Rust is amazing*.
 
+On the puzzle for day 16, I learnt that containers that only expose an iterator (via `iter()`) and don't give other helpers that do runtime checks for bounds are a bit frustrating to use - see bit_set::BitSet. If you know you have a single bit set, and you want to get the value of it (which bit it is), as far as I know you have to write `assert_eq!(bitset.len(), 1); bitset.iter().next().unwrap()` which.. is all kinds of red flags. Using an iterator without a loop. Using `unwrap()`. But it doesn't even implement index (probably because iteration order seems to be undefined?) and it doesn't give like first() which would probably normally give an Option<usize> in case there's none set. That would still have an `unwrap()` but at least not a `.iter().next()` which is ugly. Mutating a hash map when you the value is there is a bit annoying too, it still gives an Option instead of panicing, which I guess is good but idk. I didn't like any of this:
+
+```rust
+  // `possible_fields` is HashMap<String, BitSet>. This gets the first bit from the bitset in the hash map value.
+  let remove_bit = possible_fields[&fdefn.name].iter().next().unwrap();
+  // This mutates a different hash map value to remove above bit from this different bitset.
+  possible_fields.get_mut(&other_fdefn.name).unwrap().remove(remove_bit);
+  ```
+
+  Also `Vec<Vec<u64>>` was pretty confusing to work with when I ended up with a set of &Vec<u64> and I was trying to collect() them back into the final vector. I fiddled around with those compiler errors for a good 10 minutes. Now I know you can't collect references back into a set of value types, which makes sense. The problem was that I was doing `vector = vector.iter().filter(|x| ...).collect()` which looks fine, right?? No. `iter()` borrows the vector and thus iterators over references to its contents, which you can't collect back into values. Instead, you need to iterate over the values, consuming the first vector, with `into_iter()`: `vector = vector.into_iter().filter(|x| ...).collect()` will work correctly. This was really a lesson in thinking about references and reading error messages about them.
+
+  A style lesson learnt is to use blocks to break up long iterator-based initializations. For example this
+  ```rust
+    let nearbys: Vec<Vec<u64>> = inputs
+    .get_nearby_tickets()
+    .into_iter()
+    .filter(is_valid_ticket)
+    .collect();
+  ```
+  takes a `Vec<Vec<u64>>`, consumes and iterates it, filters that and collects the result. But it wraps long since it's a long line, and it's less clear than it could be. Instead, using a block I can split up the first vector from the filtering for better clarity IMHO:
+```rust
+  let nearbys: Vec<Vec<u64>> = {
+    let all_nearbys = inputs.get_nearby_tickets();
+    all_nearbys.into_iter().filter(is_valid_ticket).collect()
+  };
+```
+And because I didn't use any mutable variable, I can expect this to generate optimal code.
