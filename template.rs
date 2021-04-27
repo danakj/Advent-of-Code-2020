@@ -3,24 +3,38 @@ extern crate anyhow;
 //extern crate regex;
 //use regex::Regex;
 
-fn read_input() -> anyhow::Result<String> {
-  Ok(std::fs::read_to_string("day15/input.txt")?)
-}
-
-
-fn p1(input_all: &str) -> anyhow::Result<()> {
+fn p1(input_all: &str) -> anyhow::Result<String> {
   let _lines = input_all.split_terminator("\n").collect::<Vec<_>>();
   Ok(())
 }
 
-fn p2(input_all: &str) -> anyhow::Result<()> {
+fn p2(input_all: &str) -> anyhow::Result<String> {
   let _lines = input_all.split_terminator("\n").collect::<Vec<_>>();
   Ok(())
 }
 
 fn main() -> anyhow::Result<()> {
-  let input_all = read_input()?;
-  p1(&input_all)?;
-  p2(&input_all)?;
+  let input_all = std::fs::read_to_string("day??/input.txt")?;
+  println!("Part 1 {}", p1(&input_all)?);
+  println!("Part 2 {}", p2(&input_all)?);
   Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  const TEST_INPUT: &str = "";
+  const P1_OUTPUT: &str = "";
+  const P2_OUTPUT: &str = "";
+
+  #[test]
+  fn test_p1() -> anyhow::Result<()> {
+    assert_eq!(p1(TEST_INPUT), P1_OUTPUT);
+  }
+
+  #[test]
+  fn test_p2() -> anyhow::Result<()> {
+    assert_eq!(p2(TEST_INPUT), P2_OUTPUT);
+  }
 }
