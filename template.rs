@@ -5,12 +5,12 @@ extern crate anyhow;
 
 fn p1(input_all: &str) -> anyhow::Result<String> {
   let _lines = input_all.split_terminator("\n").collect::<Vec<_>>();
-  Ok(())
+  Ok(String::new())
 }
 
 fn p2(input_all: &str) -> anyhow::Result<String> {
   let _lines = input_all.split_terminator("\n").collect::<Vec<_>>();
-  Ok(())
+  Ok(String::new())
 }
 
 fn main() -> anyhow::Result<()> {
@@ -24,7 +24,7 @@ fn main() -> anyhow::Result<()> {
 mod tests {
   use super::*;
 
-  const TEST_INPUT: &str = "";
+  const TEST_INPUT: &str = r#""#;
   const P1_OUTPUT: &str = "";
   const P2_OUTPUT: &str = "";
 
