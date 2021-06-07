@@ -334,3 +334,25 @@ The HashSet is holding `&str` so you have to pass it one. I had a `String`, whic
 I don't fully understand why exactly but my rough understanding was that the `remove()` function takes a `Borrow<T>` trait. And `Borrow<T>` expects that borrowing `T` returns a `&T`, however for whatever reason, borrowing a `String` returns a `&str`. I'm not sure why it tries to use `Borrow<String>` when it's being passed `&string` which I'd expect to be a `&str` type, but it seems to be a `&String`. The way to solve this was to give a `&str` more explicitly , by calling `hashset.remove(&*string)`. The `*` operator makes a `str`, which we then borrow. I found this weird.
 
 Perhaps this is similar to how type conversions don't happen automatically in C++ when you call a templated thing, it just makes the templated type be what you gave it explicitly. In this case it's a trait bound, so maybe `&string` makes the bound be a `&String` type even though that'd normally convert to a `&str` outside of a trait bound?
+
+I once again made use of explicit references, storing references to the input parsed strings instead of copying them all over. Of course, this made me run into the borrow checker a few times. If you pass A to B as a reference, and A had references in it, now they become tied together, and you can't mutable borrow B anymore. At least that's how it appeared to me. I solved it by having B consume A, then I could use it at will. I also did copy some strings in one place to avoid extending some `&str` references inside a structure, preventing a later mutable borrow. This seemed like an okay compromise. I'm not sure how I could have avoided it. The code was:
+
+```
+      let mut found = None;
+      for (allergen, ingredients) in self.0.iter() {  // Shared borrow of self.0.
+        if known.from_allergen.contains_key(allergen) { continue }
+        if ingredients.0.len() == 1 {
+          let ingredient = *ingredients.0.iter().next().unwrap();
+          known.from_allergen.insert(allergen, ingredient);
+          known.from_ingredient.insert(ingredient, allergen);
+          found = Some((allergen.to_owned(), ingredient.to_owned()));  // to_owned() instead of refs.
+          break;
+        }
+      }
+  
+      if let Some((found_allergen, found_ingredient)) = found {
+        // Remove the found allergen as a candidate in all other 
+        for (other_allergen, other_product) in self.0.iter_mut() {  // Mutable borrow of self.0.
+```
+
+The `found` variable was holding references to strings, which came from `self.0`. Even though the lifetimes would be fine since those strings lifetimes are longer, holding the references extended the borrow on `self.0` causing the later mutable borrow to fail. So I made `found` hold `String`s instead.
