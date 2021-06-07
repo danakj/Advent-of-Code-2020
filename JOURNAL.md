@@ -310,3 +310,27 @@ This was my first use of explicit lifetimes, as I built a context struct to pass
 I also had the borrow checker inform me when my refactoring to split 2 statements caused a reference to a temporary to outlive the temporary object. Thank you Rust!
 
 Somewhere along the way I solved day 19's puzzle as well, but I don't remember at this point since I spent so long on day 20's. Most of that time was just spent avoiding working on it since I didn't want to rewrite everything again, but reading another solution gave me the motivation to go and solve it in Rust.
+
+## Day N of Learning Continued
+
+I solved the day 21 puzzle, and it was a fun one. I used a fair number of data structures to do so, a lot of HashMaps, and HashSets. Some new(ish?) things from Rust that I used:
+
+ - Tuple structs. Instead of a `Vec<Vec<&str>>` which starts to get confusing, I put the inner vec into a tuple struct `struct ProductIngredients(Vec<&str>)`. These tuple structs help in terms of typing, but they're also a bit annoying/awkward since they require a `.0` to access the actual data. Being used to type aliases in C++ that's how I think of them more or less, at least for a single member, but that's not how they play out. They are useful for type-safety and code documentation regardless.
+
+ The first time I found something that was like "this doesn't feel right", was when I tried to call HashSet<&str>::remove() with a String...
+
+```
+error[E0277]: the trait bound `&str: Borrow<String>` is not satisfied
+   --> day21/day21.rs:148:27
+    |
+148 |           other_product.0.remove(&found_ingredient);
+    |                           ^^^^^^ the trait `Borrow<String>` is not implemented for `&str`
+
+error: aborting due to previous error; 1 warning emitted
+```
+
+The HashSet is holding `&str` so you have to pass it one. I had a `String`, which when you borrow, gives you a `&str`. So you'd think `hashset.remove(&string)` is going to work, but yet it doesn't.
+
+I don't fully understand why exactly but my rough understanding was that the `remove()` function takes a `Borrow<T>` trait. And `Borrow<T>` expects that borrowing `T` returns a `&T`, however for whatever reason, borrowing a `String` returns a `&str`. I'm not sure why it tries to use `Borrow<String>` when it's being passed `&string` which I'd expect to be a `&str` type, but it seems to be a `&String`. The way to solve this was to give a `&str` more explicitly , by calling `hashset.remove(&*string)`. The `*` operator makes a `str`, which we then borrow. I found this weird.
+
+Perhaps this is similar to how type conversions don't happen automatically in C++ when you call a templated thing, it just makes the templated type be what you gave it explicitly. In this case it's a trait bound, so maybe `&string` makes the bound be a `&String` type even though that'd normally convert to a `&str` outside of a trait bound?
