@@ -294,3 +294,19 @@ For the puzzle for day 17, I used an object oriented approach. Or is it called d
 The puzzle for day 18 was super satisfying! Matchers were very helpful and made the branching very clear in the code. Part 2 was tricky to do without rewriting it to build an operation tree or something. But by accumulating multiplications in a 3rd stack, I was able to solve it without rewriting the world. I reused my strategy from the previous problem of writing the logic into a struct's methods. Then when part2 needed different logic, it was easy to copy/paste the whole object, rename it, and modify it to my needs. This is a very nice pattern for doing advent it seems.
 
 I also found a better way to run test code vs production. Once the production code is all inside a class, I can write a `main()` that reads from a file, and a test function that has some fixed string input, and that's a lot nicer than editing the source code to inject test inputs.
+
+## Day 9, 10, 11... of Learning
+
+Ok it's been a month and 10 days since I completed a problem. Day 20's puzzle was very tricky, and I was too persistent in trying to solve it with permutations, which were just too expensive. Once I gave in an read what [someone else](https://sethgeoghegan.com/advent-of-code-2020) had done (in Ruby) in the solutions reddit, it took about 2 hours to write a solution that passed. Hooray!
+
+I was trying to make use of the very nice `permutations()` method in Itertools that lets you generate an iterator of all permutations of items returned by another iterator. It's cool, but it was not what I wanted here. It worked for the 3x3 example, but it blew up for the 12x12 problem input.
+
+The right way to solve this was to construct a mapping from tile edge patterns to tiles, then you can find, for a given tile slot, all tiles with an edge that matches the tile above, and an edge that matches the tile on the left. And you can do this in constant time. Then it's a matter of rotating each potential tile into place (if you can), and recurse. If the recursion bubbles up with a "Could not solve" you try the next tile in the candidate pool. If none of them match, you report "Could not solve".
+
+This made for a pretty simple recusive function, returning an `Option<Vec<Tile>>`. On success, it returned the solved board once all tiles were placed. If any tile couldn't be placed at a step it would return `None` to try another path.
+
+This was my first use of explicit lifetimes, as I built a context struct to pass along through the recursion, instead of passing through like 8 parameters. The struct is copied at each point of the recursion, in order to allow unwinding and continuing from an earlier state. So to avoid copying a bunch of structures inside, most of the fields are references, along with maps with reference values. They all share the lifetime of the struct itself, which is first created before entering the recursion. This Just Worked wonderfully.
+
+I also had the borrow checker inform me when my refactoring to split 2 statements caused a reference to a temporary to outlive the temporary object. Thank you Rust!
+
+Somewhere along the way I solved day 19's puzzle as well, but I don't remember at this point since I spent so long on day 20's. Most of that time was just spent avoiding working on it since I didn't want to rewrite everything again, but reading another solution gave me the motivation to go and solve it in Rust.

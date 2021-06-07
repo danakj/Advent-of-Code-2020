@@ -1,16 +1,18 @@
 // #[macro_use]
 extern crate anyhow;
+extern crate itertools;
+use itertools::Itertools;
 //extern crate regex;
 //use regex::Regex;
 
-fn p1(input_all: &str) -> anyhow::Result<String> {
+fn p1(input_all: &str) -> anyhow::Result<u64> {
   let _lines = input_all.split_terminator("\n").collect::<Vec<_>>();
-  Ok(String::new())
+  Ok(0)
 }
 
-fn p2(input_all: &str) -> anyhow::Result<String> {
+fn p2(input_all: &str) -> anyhow::Result<u64> {
   let _lines = input_all.split_terminator("\n").collect::<Vec<_>>();
-  Ok(String::new())
+  Ok(0)
 }
 
 fn main() -> anyhow::Result<()> {
@@ -24,17 +26,15 @@ fn main() -> anyhow::Result<()> {
 mod tests {
   use super::*;
 
-  const TEST_INPUT: &str = r#""#;
-  const P1_OUTPUT: &str = "";
-  const P2_OUTPUT: &str = "";
-
   #[test]
   fn test_p1() -> anyhow::Result<()> {
-    assert_eq!(p1(TEST_INPUT), P1_OUTPUT);
+    assert_eq!(p1("")?, 0);
+    Ok(())
   }
 
   #[test]
   fn test_p2() -> anyhow::Result<()> {
-    assert_eq!(p2(TEST_INPUT), P2_OUTPUT);
+    assert_eq!(p2("")?, 0);
+    Ok(())
   }
 }
