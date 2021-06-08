@@ -356,3 +356,11 @@ I once again made use of explicit references, storing references to the input pa
 ```
 
 The `found` variable was holding references to strings, which came from `self.0`. Even though the lifetimes would be fine since those strings lifetimes are longer, holding the references extended the borrow on `self.0` causing the later mutable borrow to fail. So I made `found` hold `String`s instead.
+
+## Day N of Learning Continued
+
+I solved day 22 as well. This problem was a fun one! It was mostly about translating specifications into code, which was quite straightforward into Rust. And part 2 was the right answer on the first compile and run, yet again. Rust is still magic!
+
+When building a recursive function, Rust made me think about where to clone vs reference in just the right way such that it was very clear how to write the ownership, and as a result where the ownership lived. I really appreciated how I could make a variable without any value, and the compiler did ensure correctly that it was always set before being used, without having to set it to some "default value", in which case you can't tell if it was actually set later. Logic bugs avoided by taking advantage of the fact uninitialized memory cannot be used.
+
+Also, `#[derive(Hash)]` on structure just makes it hash magically for the most part. That's so so nice. I used that to keep history by hashing the cards of each player, thus avoiding writing a problematic comparison function. And I noticed that inserting into the HashSet required passing ownership (of a `clone()` for me), indicating that the structure keeps the original data around in case of hash collisions, so there's no false matches. Yay.

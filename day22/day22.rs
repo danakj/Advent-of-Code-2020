@@ -1,9 +1,6 @@
-// #[macro_use]
-extern crate anyhow;
-//extern crate itertools;
-//use itertools::Itertools;
 extern crate regex;
 use regex::Regex;
+use std::collections::HashSet;
 use std::collections::VecDeque;
 
 #[derive(Copy, Clone, Debug, Hash, PartialOrd, Ord, PartialEq, Eq)]
@@ -43,9 +40,15 @@ impl DeckBuilder {
   }
 }
 
+#[derive(Clone, Debug, Hash)]
+struct GameResult {
+  game_winner: usize,
+  score: usize,
+}
+
 struct Game {}
 impl Game {
-  fn play(decks: &mut Vec<Deck>) -> usize {
+  fn play(mut decks: Vec<Deck>) -> usize {
     loop {
       let (winner, loser) = if decks[0].cards[0].0 > decks[1].cards[0].0 {
         // decks[0] wins.
@@ -74,26 +77,90 @@ impl Game {
       }
     }
   }
+
+  fn play_recursive(mut decks: Vec<Deck>) -> GameResult {
+    let mut deck_history = [
+      HashSet::<VecDeque<Card>>::new(),
+      HashSet::<VecDeque<Card>>::new(),
+    ];
+
+    let game_winner;
+
+    loop {
+      let history_repeated = [
+        deck_history[0].contains(&decks[0].cards),
+        deck_history[1].contains(&decks[1].cards),
+      ];
+      if history_repeated[0] && history_repeated[1] {
+        game_winner = 0;
+        break;
+      }
+      deck_history[0].insert(decks[0].cards.clone());
+      deck_history[1].insert(decks[1].cards.clone());
+
+      let topcard = [
+        decks[0].cards.pop_front().unwrap(),
+        decks[1].cards.pop_front().unwrap(),
+      ];
+
+      let (winner, loser) =
+        if decks[0].cards.len() >= topcard[0].0 && decks[1].cards.len() >= topcard[1].0 {
+          let result = {
+            let mut recursive_decks = decks.clone();
+            recursive_decks[0].cards.truncate(topcard[0].0);
+            recursive_decks[1].cards.truncate(topcard[1].0);
+            Game::play_recursive(recursive_decks)
+          };
+          // winner determined recursively.
+          if result.game_winner == 0 {
+            // decks[0] wins.
+            (0, 1)
+          } else {
+            //decks[1] wins.
+            (1, 0)
+          }
+        } else if topcard[0] > topcard[1] {
+          // decks[0] wins.
+          (0, 1)
+        } else {
+          // decks[1] wins.
+          (1, 0)
+        };
+
+      decks[winner].cards.push_back(topcard[winner]);
+      decks[winner].cards.push_back(topcard[loser]);
+
+      if decks[loser].cards.is_empty() {
+        game_winner = winner;
+        break;
+      }
+    }
+    let mut score = 0;
+    let mut multiplier = 1;
+    for c in decks[game_winner].cards.iter().rev() {
+      score += multiplier * c.0;
+      multiplier += 1;
+    }
+    return GameResult {
+      game_winner: game_winner,
+      score: score,
+    };
+  }
 }
 
-fn solve(input_all: String) -> anyhow::Result<()> {
+fn solve(input_all: String) {
   let lines = input_all.split_terminator("\n").collect::<Vec<_>>();
-  let mut decks = DeckBuilder::from_lines(lines);
-  let score = Game::play(&mut decks);
+  let decks = DeckBuilder::from_lines(lines);
+  let score = Game::play(decks.clone());
   println!("Part 1 {}", score);
-  Ok(())
+
+  let result = Game::play_recursive(decks);
+  println!("Part 2 {}", result.score);
 }
 
 fn main() -> anyhow::Result<()> {
   let input_all = std::fs::read_to_string("day22/input.txt")?;
   //let input_all = std::fs::read_to_string("day22/test.txt")?;
-  solve(input_all)
-}
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  #[test]
-  fn test() {}
+  solve(input_all);
+  Ok(())
 }
