@@ -200,6 +200,14 @@ impl Cups {
   }
 }
 
+impl Drop for Cups {
+  fn drop(&mut self) {
+    for &p in &self.map {
+      drop(unsafe { Box::from_raw(p) });
+    }
+  }
+}
+
 fn p1(input_all: &str) {
   let mut cups = Cups::make_cups(input_all);
   for _step in 1..=100 {
