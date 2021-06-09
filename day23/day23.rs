@@ -1,21 +1,16 @@
-// #[macro_use]
-extern crate anyhow;
-//extern crate itertools;
-//use itertools::Itertools;
-//extern crate regex;
-//use regex::Regex;
-use std::collections::HashMap;
 use std::ptr::null_mut;
 
 struct Cup {
-  label: u32,
+  label: usize,
   next: *mut Cup,
+  picked_up: bool,
 }
 impl Cup {
-  fn new(label: u32) -> Cup {
+  fn new(label: usize) -> Cup {
     Cup {
       label: label,
       next: null_mut(),
+      picked_up: false,
     }
   }
 }
@@ -23,24 +18,27 @@ impl Cup {
 struct Cups {
   current: *mut Cup,
   pickup: Option<[*mut Cup; 3]>,
-  map: HashMap<u32, *mut Cup>,
-  max_label: u32,
+  // For each Cup label N, index [N-1] points to that Cup.
+  map: Vec<*mut Cup>,
+  max_label: usize,
 }
 impl Cups {
   fn make_cups(order: &str) -> Self {
+    assert!(order.chars().count() > 3); // Else pickup() would steal `self.current`.
     let mut cups = Cups {
       current: null_mut(),
       pickup: None,
-      map: HashMap::new(),
+      map: Vec::new(),
       max_label: 0,
     };
+    cups.map.resize(order.len(), null_mut());
     let mut cups_it = order
       .chars()
-      .map(|c| c.to_string().parse::<u32>().unwrap())
+      .map(|c| c.to_string().parse::<usize>().unwrap())
       .rev();
     while let Some(label) = cups_it.next() {
       let new_cup = Box::into_raw(Box::new(Cup::new(label)));
-      cups.map.insert(label, new_cup);
+      cups.map[label - 1] = new_cup;
       cups.max_label = std::cmp::max(cups.max_label, label);
       unsafe {
         (*new_cup).next = cups.current;
@@ -56,12 +54,12 @@ impl Cups {
       assert!((*tail).next.is_null());
       (*tail).next = cups.current;
     }
-    assert!(cups.map.len() > 3); // Else pickup() would steal `self.current`.
     cups
   }
 
-  fn make_cups_until(order: &str, until: u32) -> Self {
+  fn make_cups_until(order: &str, until: usize) -> Self {
     let mut cups = Self::make_cups(order);
+    cups.map.resize(until, null_mut());
     let mut tail = cups.current;
     unsafe {
       while (*tail).next != cups.current {
@@ -85,7 +83,7 @@ impl Cups {
         }
       }
       ordered_tail = new_cup;
-      cups.map.insert(label, new_cup);
+      cups.map[label - 1] = new_cup;
       max = label
     }
     // Insert them into the ring.
@@ -105,7 +103,7 @@ impl Cups {
       let mut p = (*self.current).next;
       for i in 0..3 {
         pickup[i] = p;
-        self.map.remove(&(*p).label);
+        (*p).picked_up = true;
         p = (*p).next;
       }
       (*self.current).next = p;
@@ -114,20 +112,16 @@ impl Cups {
   }
 
   // Inserts the `self.pickup` nodes after `destination`.
-  fn insert_pickup_after(&mut self, destination_label: u32) {
-    let pickup = &self.pickup.unwrap();
-    let destination: *mut Cup = *self
-      .map
-      .get(&destination_label)
-      .expect("Invalid destination");
+  fn insert_pickup_after(&mut self, destination: *mut Cup) {
     assert!(!destination.is_null());
+    let pickup = &self.pickup.unwrap();
     unsafe {
       let old_next = (*destination).next;
       // Walk the pickups, inserting them back into the map, then connect
       // the old neighbour of destination afterward.
       (*destination).next = pickup[0];
       for i in 0..3 {
-        self.map.insert((*pickup[i]).label, pickup[i]);
+        (*pickup[i]).picked_up = false
       }
       (*pickup[2]).next = old_next;
     }
@@ -140,7 +134,7 @@ impl Cups {
     }
   }
 
-  fn find_destination(&self) -> u32 {
+  fn find_destination(&self) -> *mut Cup {
     let mut search = unsafe { (*self.current).label };
     loop {
       if search == 1 {
@@ -149,14 +143,15 @@ impl Cups {
       } else {
         search -= 1;
       }
-      if self.map.contains_key(&search) {
-        return search;
+      let cup = self.map[search - 1];
+      if !unsafe { (*cup).picked_up } {
+        return cup;
       }
     }
   }
 
-  fn next(&self, label: u32) -> u32 {
-    let p = *self.map.get(&label).expect("next() with invalid label");
+  fn next(&self, label: usize) -> usize {
+    let p = self.map[label - 1];
     unsafe {
       let p_next = (*p).next;
       (*p_next).label
@@ -253,10 +248,9 @@ fn p2(input_all: &str) {
   println!("Part 2 {}", p2);
 }
 
-fn main() -> anyhow::Result<()> {
+fn main() {
   let input_all = String::from("716892543");
   //let input_all = String::from("389125467"); // Test input.
   p1(&input_all);
   p2(&input_all);
-  Ok(())
 }

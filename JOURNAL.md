@@ -364,3 +364,28 @@ I solved day 22 as well. This problem was a fun one! It was mostly about transla
 When building a recursive function, Rust made me think about where to clone vs reference in just the right way such that it was very clear how to write the ownership, and as a result where the ownership lived. I really appreciated how I could make a variable without any value, and the compiler did ensure correctly that it was always set before being used, without having to set it to some "default value", in which case you can't tell if it was actually set later. Logic bugs avoided by taking advantage of the fact uninitialized memory cannot be used.
 
 Also, `#[derive(Hash)]` on structure just makes it hash magically for the most part. That's so so nice. I used that to keep history by hashing the cards of each player, thus avoiding writing a problematic comparison function. And I noticed that inserting into the HashSet required passing ownership (of a `clone()` for me), indicating that the structure keeps the original data around in case of hash collisions, so there's no false matches. Yay.
+
+## Day 16 of Learning
+
+Let's pick a number again for days. 16 will do as there's some nebuous gap after 9 where I worked on stuff some days but mostly didnt.
+
+Today I solved the day 23 puzzle. The puzzle is a game, with a ring of cups, and some rules for moving the cups around. The solution I wrote for part one was a `Vec<Cup>` where each `Cup` was a label (number) more or less. And this worked well for part 1, but fell over in part 2 where there were 1,000,000 cups and 10,000,000 turns to the game.
+
+The reason part 2 fell over is simply due to memory bandwidth. With a vector of a million items, insert and remove operations are expensive. It has to shuffle up to a million things (a few megabytes!) each time. And 10,000,000 rounds of that takes... a while. At first I thought I might try a clever trick, as maybe the part 2 rules didn't actually make use of all million cups. So I just kept my vector of 10, and lazily inserted more elements at the end as needed. But this did not go fast either, it took about a minute to run to completion. And it had bugs, I got a WRONG RESULT from running my program. I gotta say I am not particularly used to that anymore, working with Rust to solve these puzzles.
+
+I've been reading the Rustonomicon, so I figured now was a good time to try some good ol' unsafe pointers. What I needed was a pointery data structure that I would easily write in C++, so how about in Rust?
+
+I wrote a circular singly-linked list using actual pointers (i.e. `*mut Cup`). Each `Cup` had a label (number) and a `next` pointer. The game state had a method and a stash to pull out `Cup`s from the circular buffer, and method to insert them back into a new spot. The game also needed to be able to find a `Cup` from a label (number). So I added a `HashMap<usize, *mut Cup>` to do that search in constant time. I removed cups from the `HashMap` when they were pulled out of the linked-list circle, and inserted them when they were put back in.
+
+This solution worked! I had a few pointer bugs that I quickly spotted when running it, like when I pulled out 3 `Cup`s from the circle, but they were all the same `Cup`. But nothing was too tricky here and I got the pointer logic right easily. Then I ran it, and I got the right answer on the first try! YAY!
+
+The program was definitely faster than before, from about a minute or so, down to 7.3696456 seconds. Not bad.. but I had noticed when wondering how other folks had done this that [someone](https://work.njae.me.uk/2021/01/08/advent-of-code-2020-day-23/) was running both parts in under 2 seconds. So, now that I had the right answer, how could I improve it?
+
+I picked the 3 most likely slow spots and eliminated them:
+ - Instead of removing `Cup`s from the `HashMap` when pulling them out of the circle, I put a flag in `Cup` to mark them as removed. Then when searching for a `Cup` by number, they would not be returned. This made searching slower, but only 3 cups are removed at a time so not by a lot. This brought the time down to 4.0777741 seconds.
+ - I was doing a search by number, to find a `Cup`, returning its value, and then looking up that value to get the `Cup` pointer again later. I took out this middle step and just passed around a `*mut Cup`. This sped things up a bit, to 3.7406632 seconds, since that removed 10 million lookups.
+  - The `HashMap` is constant time, but I observed I had a contiguous set of cups, from 1 to 1,000,000. So instead of a `HashMap`, a `Vec<*mut Cup>` would do, where index `[N-1]` would point to the `Cup` with label `N`. This brough the runtime down to 1.9292926 seconds.
+
+I am happy with that result, and don't see anything else super obvious to speed up. I don't want to compare the absolute time too much with the person above, since their result was run on another machine.
+
+Working with pointers in Rust was an enjoyable exercise and I got to see how Rust is truly a systems programming language finally. It feels quite like writing C++, with guard rails even when working with pointers, like explicit panics when you do the wrong thing for many things. And with the ability to go into "safe land" entirely at any time. I can see how it's very plausible to write some fast unique data structure, wrap it in an API that encapulates it, and continue to have a safe system.
