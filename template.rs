@@ -11,7 +11,11 @@ fn solve(input_all: String) -> anyhow::Result<()> {
 }
 
 fn main() -> anyhow::Result<()> {
-  let input_all = std::fs::read_to_string("day??/input.txt")?;
+  let input_all = if std::env::args().nth(1).filter(|s| s == "test").is_some() {
+    std::fs::read_to_string("day??/test.txt")?
+  } else {
+    std::fs::read_to_string("day??/input.txt")?
+  };
   solve(input_all)
 }
 

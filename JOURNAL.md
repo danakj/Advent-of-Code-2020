@@ -319,7 +319,7 @@ I solved the day 21 puzzle, and it was a fun one. I used a fair number of data s
 
  The first time I found something that was like "this doesn't feel right", was when I tried to call HashSet<&str>::remove() with a String...
 
-```
+```rust
 error[E0277]: the trait bound `&str: Borrow<String>` is not satisfied
    --> day21/day21.rs:148:27
     |
@@ -337,7 +337,7 @@ Perhaps this is similar to how type conversions don't happen automatically in C+
 
 I once again made use of explicit references, storing references to the input parsed strings instead of copying them all over. Of course, this made me run into the borrow checker a few times. If you pass A to B as a reference, and A had references in it, now they become tied together, and you can't mutable borrow B anymore. At least that's how it appeared to me. I solved it by having B consume A, then I could use it at will. I also did copy some strings in one place to avoid extending some `&str` references inside a structure, preventing a later mutable borrow. This seemed like an okay compromise. I'm not sure how I could have avoided it. The code was:
 
-```
+```rust
       let mut found = None;
       for (allergen, ingredients) in self.0.iter() {  // Shared borrow of self.0.
         if known.from_allergen.contains_key(allergen) { continue }
@@ -389,3 +389,42 @@ I picked the 3 most likely slow spots and eliminated them:
 I am happy with that result, and don't see anything else super obvious to speed up. I don't want to compare the absolute time too much with the person above, since their result was run on another machine.
 
 Working with pointers in Rust was an enjoyable exercise and I got to see how Rust is truly a systems programming language finally. It feels quite like writing C++, with guard rails even when working with pointers, like explicit panics when you do the wrong thing for many things. And with the ability to go into "safe land" entirely at any time. I can see how it's very plausible to write some fast unique data structure, wrap it in an API that encapulates it, and continue to have a safe system.
+
+I forgot to free the memory I was keeping around with raw pointers, classic unsafe programming mistake. But this afforded me my first chance to write a destructor, via the Drop trait, which was very quick and easy. I understand that Drop changes how the borrow checker scopes things, since going out of scope becomes a mutable borrow, so it kind of anchors the use of the object to fill the whole lexical scope (unless you `drop()` it or use a `let` statement to replace the variable name?).
+
+## Day 17 of Learning
+
+We're done! I solved the day 24 and 25 puzzles.
+
+The day 24 puzzle went pretty quick. I think the trick was to pick a coordinate system for the hexagon tiles. I happened to land on a system that worked well, such that navigating around the tiles was fast. And I quickly observed that I needed to only keep track of tiles I had flipped, and tiles adjacent to those I had flipped. A HashMap of tiles based on their positions was enough to solve the puzzle based on that.
+
+The coords I used were:
+```
+// Coords (x inline):
+//
+// y = -1   -5  -3  -1   1   3   5
+// y =  0     -4  -2   0   2   4   6
+// y =  1   -5  -3  -1   1   3   5
+//
+// So there's no even x coords on odd rows.
+// And there's no odd x coords on even rows.
+```
+So moving west subtracts 2 from x. Moving south-east adds 1 to x and 1 to y. This lets moves combine easily to get to the right final place.
+
+Day 25's puzzle didn't really stretch my rust skills, as my solution just turned out to be 2 free functions, and some loops.
+
+But I did do a nice thing, in order to explore Rust a bit more. Instead of hard-coding to use the test input or the real input, I read the command line arguments through `std::env::args()`. It gives an iterator, so you can just look for the `.nth()` argument, which is an `Option<&String>`. Then `filter()` works to see if the argument is what you wanted, if it's present, like so:
+
+```rust
+  let input_all = if std::env::args().nth(1).filter(|s| s == "test").is_some() {
+    std::fs::read_to_string("day25/test.txt")?
+  } else {
+    std::fs::read_to_string("day25/input.txt")?
+  };
+```
+
+Kinda proud of that small thing. But mostly super happy to have made it to the end.
+
+I really enjoyed these puzzles, and I enjoyed working with and learning the Rust language and library.
+
+Bye!
